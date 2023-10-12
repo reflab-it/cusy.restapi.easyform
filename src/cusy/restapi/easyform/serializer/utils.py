@@ -73,7 +73,7 @@ def get_json_schema_for_form_contents(
         if info:
             properties[id_] = {
                 "title": info["title"],
-                "description": info["description"],
+                "description": info["description"] or '',
                 "type": "object",
                 "properties": fieldset_properties,
                 "required": required,
