@@ -112,6 +112,7 @@ class EasyFormPost(Service):
         #return self.reply_no_content()
         response = {
             'status': 'ok',
-            'msg': ''
+            'msg': '',
+            'success': True
         }
         return json.dumps(response, indent=2)
