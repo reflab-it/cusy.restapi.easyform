@@ -37,6 +37,16 @@
       factory=".adapters.RichLabelJsonSchemaProvider"
       />
 
+  <!-- file -->
+  <adapter
+      factory=".adapters.FileJsonSchemaProvider"
+      />
+
+  <!-- image -->
+  <adapter
+      factory=".adapters.ImageJsonSchemaProvider"
+      />
+
   <!-- Get the json-schema representation. -->
   <plone:service
       factory=".get.EasyFormSchemaGet"

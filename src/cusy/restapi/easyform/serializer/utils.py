@@ -54,10 +54,11 @@ def get_json_schema_for_form_contents(
     for fieldset in fieldsets:
         id_ = fieldset["id"]
         info = get_info_for_fieldset(formview, request, id_)
+
         fieldset_properties = get_jsonschema_properties(
             formview, request, [fieldset], excluded_fields=excluded_fields
         )
-
+        
         if len(fieldsets) > 1 and id_ == "default" and not info:
             info = {
                 "title": "Standard",

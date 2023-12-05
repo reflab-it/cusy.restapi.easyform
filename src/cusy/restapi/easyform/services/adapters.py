@@ -30,6 +30,8 @@ from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.interfaces import IDate
 from zope.schema.interfaces import IDatetime
 from zope.schema.interfaces import IURI
+from plone.namedfile.interfaces import INamedBlobFileField
+from plone.namedfile.interfaces import INamedBlobImageField
 
 
 @adapter(IEmail, Interface, ICusyRestapiEasyformLayer)
@@ -208,3 +210,36 @@ class RichLabelJsonSchemaProvider(LabelJsonSchemaProvider):
         return {
             "content": self.field.rich_label and self.field.rich_label.output or "",
         }
+
+@adapter(INamedBlobFileField, Interface, ICusyRestapiEasyformLayer)
+@implementer(IJsonSchemaProvider)
+class FileJsonSchemaProvider(DefaultJsonSchemaProvider):
+    prefix = ""
+
+    def get_type(self):
+        return "string"
+
+    def get_widget(self):
+        return "attachment"
+
+    def get_schema(self):
+        tmp = DefaultJsonSchemaProvider.get_schema(self)
+        tmp['format'] = 'data-url'
+        return tmp
+
+
+@adapter(INamedBlobImageField, Interface, ICusyRestapiEasyformLayer)
+@implementer(IJsonSchemaProvider)
+class ImageJsonSchemaProvider(DefaultJsonSchemaProvider):
+    prefix = ""
+
+    def get_type(self):
+        return "string"
+
+    def get_widget(self):
+        return "attachment"
+
+    def get_schema(self):
+        tmp = DefaultJsonSchemaProvider.get_schema(self)
+        tmp['format'] = 'data-url'
+        return tmp

@@ -3,6 +3,10 @@
 from plone.restapi.deserializer import json_body
 from plone.restapi.services import Service
 from plone.restapi.types.utils import get_form_fieldsets
+from plone.namedfile.file import NamedBlobFile, NamedBlobImage
+from base64 import b64decode
+
+
 from zExceptions import BadRequest
 from zope.component import getMultiAdapter
 from zope.interface import alsoProvides
@@ -10,6 +14,7 @@ from zope.interface import alsoProvides
 import datetime
 import plone.api
 import plone.protect
+import json
 
 
 class EasyFormPost(Service):
@@ -61,10 +66,35 @@ class EasyFormPost(Service):
                     )
                 except AttributeError:
                     field_data = form_data[fname] = None
-
+            elif field_data and field._type == NamedBlobFile:
+                try:
+                    # data is samething like:
+                    # 'data:image/png;name=uno.png;base64,blabla...blabla...bla
+                    _type, _name, _data = field_data.split(';')
+                    _type = _type.replace('data:', '')
+                    _name = _name.replace('name=', '')
+                    _data = _data.replace('base64,', '')
+                    _blob = b64decode(_data)
+                    ttt = NamedBlobFile(_blob, _type, _name)
+                    field_data = form_data[fname] = ttt
+                except AttributeError:
+                    field_data = form_data[fname] = None
+            elif field_data and field._type == NamedBlobImage:
+                try:
+                    # data is samething like:
+                    # 'data:image/png;name=uno.png;base64,blabla...blabla...bla
+                    _type, _name, _data = field_data.split(';')
+                    _type = _type.replace('data:', '')
+                    _name = _name.replace('name=', '')
+                    _data = _data.replace('base64,', '')
+                    _blob = b64decode(_data)
+                    ttt = NamedBlobImage(_blob, _type, _name)
+                    field_data = form_data[fname] = ttt
+                except AttributeError:
+                    field_data = form_data[fname] = None
             try:
                 field.validate(field_data)
-            except Exception as error:  # noqa: B902
+            except Exception as error:  # noqa: B902 
                 errors.append({"error": error, "message": str(error)})
 
         if errors:
@@ -79,4 +109,9 @@ class EasyFormPost(Service):
         if errors:
             return BadRequest("Wrong form data.")
 
-        return self.reply_no_content()
+        #return self.reply_no_content()
+        response = {
+            'status': 'ok',
+            'msg': ''
+        }
+        return json.dumps(response, indent=2)
