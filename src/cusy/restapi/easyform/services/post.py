@@ -113,6 +113,7 @@ class EasyFormPost(Service):
         response = {
             'status': 'ok',
             'msg': '',
-            'success': True
+            'success': True,
+            'data': data
         }
-        return json.dumps(response, indent=2)
+        return response
