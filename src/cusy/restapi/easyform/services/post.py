@@ -14,7 +14,7 @@ from zope.interface import alsoProvides
 import datetime
 import plone.api
 import plone.protect
-import json
+from plone.restapi.serializer.converters import json_compatible
 
 
 class EasyFormPost(Service):
@@ -109,11 +109,29 @@ class EasyFormPost(Service):
         if errors:
             return BadRequest("Wrong form data.")
 
-        #return self.reply_no_content()
+        tmp = {}
+        for item in data:
+            #print(type(data[item]))
+            if type(data[item]) is plone.namedfile.file.NamedBlobFile:
+                tmp[item] = data['file'].filename
+            elif type(data[item]) is plone.namedfile.file.NamedBlobImage:
+                tmp[item] = data['file'].filename
+            else:
+                tmp[item] = data[item]
+        
+        have_data_form = True
+        try:
+            _data = json_compatible(tmp)
+        except:
+            _data = {}
+            have_data_form = False
+
         response = {
             'status': 'ok',
             'msg': '',
             'success': True,
-            'data': data
+            'have_data': have_data_form,
+            'data': _data
         }
+
         return response
