@@ -16,6 +16,34 @@ from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
 from zope.interface import implementer
 
+from collective.easyform.interfaces import IFieldExtender
+from collective.easyform.api import get_expression
+
+def _get_jsonschema_properties(
+    context, request, fieldsets, prefix="", excluded_fields=None
+):
+    props = get_jsonschema_properties(context, request, fieldsets, prefix, excluded_fields)
+    tmp = {}
+    disable_fields = []
+    for fieldset in fieldsets:
+        for field in fieldset['fields']:
+            ext = IFieldExtender(field.field)
+            _def = getattr(ext, "TDefault", None)
+            _enbl = getattr(ext, "TEnabled", None)
+            value = get_expression(context.context, _def) if _def else field.field.default
+            enabled = get_expression(context.context, _enbl) if _enbl else True
+            _id = field.field.getName()
+            if _def is not None:
+                tmp[_id] = value
+            if enabled is False:
+                disable_fields.append(_id)
+    for key, value in props.items():
+        # matching our evalueted values
+        if key in tmp:
+            value['default'] = tmp[key]
+    for _id in disable_fields:
+        del props[_id]
+    return props
 
 def get_field_value(field, excluded_fields, form, request, prefix):
     fieldname = field.__name__
@@ -55,7 +83,7 @@ def get_json_schema_for_form_contents(
         id_ = fieldset["id"]
         info = get_info_for_fieldset(formview, request, id_)
 
-        fieldset_properties = get_jsonschema_properties(
+        fieldset_properties = _get_jsonschema_properties(
             formview, request, [fieldset], excluded_fields=excluded_fields
         )
         
