@@ -43,8 +43,10 @@ class EasyFormPost(Service):
 
         form = easyform_view.form_instance
         errors = []
+        mapping = {}
         for fname in form.schema:
             field = form.schema[fname]
+            mapping[fname] = field.title
             field_data = form_data.get(fname, None)
 
             if field_data and field._type == set:
@@ -111,11 +113,10 @@ class EasyFormPost(Service):
 
         tmp = {}
         for item in data:
-            #print(type(data[item]))
             if type(data[item]) is plone.namedfile.file.NamedBlobFile:
-                tmp[item] = data['file'].filename
+                tmp[item] = data[item].filename
             elif type(data[item]) is plone.namedfile.file.NamedBlobImage:
-                tmp[item] = data['file'].filename
+                tmp[item] = data[item].filename
             else:
                 tmp[item] = data[item]
         
@@ -131,7 +132,8 @@ class EasyFormPost(Service):
             'msg': '',
             'success': True,
             'have_data': have_data_form,
-            'data': _data
+            'data': _data,
+            'mapping': mapping
         }
 
         return response
