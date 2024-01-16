@@ -135,7 +135,10 @@ class CusyChoiceJsonSchemaProvider(ChoiceJsonSchemaProvider):
                 if vocab_name:
                     token = term.token
                 else:
-                    token = title
+                    if term.token is not None:
+                        token = term.token
+                    else:
+                        token = title
                 if token is None:
                     continue
                 choices.append({"const": token, "title": title})
