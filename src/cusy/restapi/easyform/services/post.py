@@ -109,7 +109,8 @@ class EasyFormPost(Service):
                 extra.validate(field_data)
                 field.validate(field_data)
             except Exception as error:
-                errors.append({"error": error, "message": str(error)})
+                _msg = f'Field: {field.title} has error {str(error)}'
+                errors.append({"error": error, "message": _msg, "field": field.title})
 
         if errors:
             # Drop Python specific error classes in order to be able to better handle
