@@ -16,10 +16,13 @@ import plone.api
 import plone.protect
 from plone.restapi.serializer.converters import json_compatible
 
+from collective.easyform.fields import FieldExtenderValidator
+
 
 class EasyFormPost(Service):
     def reply(self):  # noqa: C901
         data = json_body(self.request)
+        self.request.form = data
 
         # Disable CSRF protection
         if "IDisableCSRFProtection" in dir(plone.protect.interfaces):
@@ -95,8 +98,17 @@ class EasyFormPost(Service):
                 except AttributeError:
                     field_data = form_data[fname] = None
             try:
+                # validate custom validators
+                extra = FieldExtenderValidator(
+                    self.context,
+                    self.request,
+                    easyform_view,
+                    field,
+                    formview.widgets[field.title]
+                )
+                extra.validate(field_data)
                 field.validate(field_data)
-            except Exception as error:  # noqa: B902 
+            except Exception as error:
                 errors.append({"error": error, "message": str(error)})
 
         if errors:
@@ -104,8 +116,16 @@ class EasyFormPost(Service):
             # errors on front-end
             for error in errors:
                 error["error"] = "ValidationError"
-            raise BadRequest(errors)
+            #raise BadRequest(errors)
+            response = {
+                'status': 'error',
+                'msg': 'there are errors',
+                'success': False,
+                'errors': errors
+            }
 
+            return response
+            
         data = form.updateServerSideData(form_data)
         errors = form.processActions(form_data)
         if errors:
