@@ -24,6 +24,7 @@ class EasyFormPost(Service):
         data = json_body(self.request)
         self.request.form = data
 
+
         # Disable CSRF protection
         if "IDisableCSRFProtection" in dir(plone.protect.interfaces):
             alsoProvides(self.request, plone.protect.interfaces.IDisableCSRFProtection)
@@ -104,12 +105,13 @@ class EasyFormPost(Service):
                     self.request,
                     easyform_view,
                     field,
-                    formview.widgets[field.title]
+                    formview.widgets[field.getName()]
                 )
                 extra.validate(field_data)
                 field.validate(field_data)
             except Exception as error:
                 _msg = f'Field: {field.title} has error {str(error)}'
+                print(_msg)
                 errors.append({"error": error, "message": _msg, "field": field.title})
 
         if errors:
