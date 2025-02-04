@@ -83,6 +83,7 @@ class EasyFormPost(Service):
                     _blob = b64decode(_data)
                     ttt = NamedBlobFile(_blob, _type, _name)
                     field_data = form_data[fname] = ttt
+                    del self.request.form[fname]
                 except AttributeError:
                     field_data = form_data[fname] = None
             elif field_data and field._type == NamedBlobImage:
@@ -96,6 +97,7 @@ class EasyFormPost(Service):
                     _blob = b64decode(_data)
                     ttt = NamedBlobImage(_blob, _type, _name)
                     field_data = form_data[fname] = ttt
+                    del self.request.form[fname]
                 except AttributeError:
                     field_data = form_data[fname] = None
             try:
@@ -129,6 +131,7 @@ class EasyFormPost(Service):
             return response
             
         data = form.updateServerSideData(form_data)
+        self.request.form = dict([(f'form.widgets.{k}',v) for k,v in self.request.form.items() if 'form.widgets' not in k])
         errors = form.processActions(form_data)
         if errors:
             return BadRequest("Wrong form data.")
