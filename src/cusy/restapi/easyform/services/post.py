@@ -129,9 +129,21 @@ class EasyFormPost(Service):
             }
 
             return response
-            
+
         data = form.updateServerSideData(form_data)
         self.request.form = dict([(f'form.widgets.{k}',v) for k,v in self.request.form.items() if 'form.widgets' not in k])
+
+        # fix boolean fields
+        for fname in form.schema:
+            field = form.schema[fname]
+            field_data = form_data.get(fname, None)
+
+            if field_data and field._type == bool:
+                name = f'form.widgets.{fname}'
+                if self.request.form.get(name, False) == True:
+                    self.request.form[name] = ['selected']
+                    self.request.form[f'{name}-empty-marker'] = '1'
+
         errors = form.processActions(form_data)
         if errors:
             return BadRequest("Wrong form data.")
@@ -144,7 +156,7 @@ class EasyFormPost(Service):
                 tmp[item] = data[item].filename
             else:
                 tmp[item] = data[item]
-        
+
         have_data_form = True
         try:
             _data = json_compatible(tmp)
